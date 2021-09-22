@@ -1,3 +1,4 @@
+using DIO.CatalogoDeJogos.Middlewares;
 using DIO.CatalogoDeJogos.Repositories;
 using DIO.CatalogoDeJogos.Services;
 using Microsoft.AspNetCore.Builder;
@@ -45,7 +46,9 @@ namespace DIO.CatalogoDeJogos
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DIO.CatalogoDeJogos v1"));
             }
-
+			
+			app.UseMiddleware<ExceptionMiddleware>();
+			
             app.UseHttpsRedirection();
 
             app.UseRouting();
