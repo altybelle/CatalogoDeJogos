@@ -1,12 +1,11 @@
-﻿using DIO.CatalogoDeJogos.InputModel;
+﻿using DIO.CatalogoDeJogos.Exceptions;
+using DIO.CatalogoDeJogos.InputModel;
 using DIO.CatalogoDeJogos.Services;
 using DIO.CatalogoDeJogos.ViewModel;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DIO.CatalogoDeJogos.Controllers.V1
@@ -17,15 +16,20 @@ namespace DIO.CatalogoDeJogos.Controllers.V1
     {
         private readonly IJogoService _jogoService;
 
+        public JogosController(IJogoService jogoService)
+        {
+            _jogoService = jogoService;
+        }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<JogoViewModel>>> Obter([FromQuery, Range(1, int.MaxValue)] int pagina = 1, [FromQuery, Range(1, 50)] int quantidade = 5)
+        public async Task<ActionResult<List<JogoViewModel>>> Obter([FromQuery, Range(1, int.MaxValue)] int pagina = 1, [FromQuery, Range(1, 50)] int quantidade = 5)
         {
             var jogos = await _jogoService.Obter(1, 5);
 
             if (jogos.Count == 0)
                 return NoContent();
 
-            return Ok();
+            return Ok(jogos);
         }
 
         [HttpGet("{idJogo:guid}")]
@@ -36,7 +40,7 @@ namespace DIO.CatalogoDeJogos.Controllers.V1
             if (jogo == null)
                 return NoContent();
 
-            return Ok();
+            return Ok(jogo);
         }
 
         [HttpPost]
@@ -46,8 +50,8 @@ namespace DIO.CatalogoDeJogos.Controllers.V1
             {
                 var jogo = await _jogoService.Inserir(jogoInputModel);
 
-                return Ok();
-            } catch (Exception ex)
+                return Ok(jogo);
+            } catch (JogoJaCadastradoException)
             {
                 return UnprocessableEntity("Já existe um jogo com este nome para esta produtora.");
             }
@@ -61,7 +65,7 @@ namespace DIO.CatalogoDeJogos.Controllers.V1
 
                 return Ok();
             }
-            catch (Exception ex)
+            catch (JogoNaoCadastradoException)
             {
                 return NotFound("Esse jogo não existe.");
             }
@@ -76,7 +80,7 @@ namespace DIO.CatalogoDeJogos.Controllers.V1
 
                 return Ok();
             }
-            catch (Exception ex)
+            catch (JogoNaoCadastradoException)
             {
                 return NotFound("Esse jogo não existe.");
             }
@@ -90,7 +94,7 @@ namespace DIO.CatalogoDeJogos.Controllers.V1
                 await _jogoService.Remover(idJogo);
 
                 return Ok();
-            } catch (Exception ex)
+            } catch (JogoNaoCadastradoException)
             {
                 return NotFound("Esse jogo não existe.");
             }
